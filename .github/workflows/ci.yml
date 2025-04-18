@@ -1,0 +1,42 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with: node-version: 18
+      - run: |
+          cd frontend
+          npm ci
+          npm run lint
+          npm test
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-rust@v1
+        with: rust-version: stable
+      - run: |
+          cd src-tauri
+          cargo fmt -- --check
+          cargo clippy -- -D warnings
+          cargo build --release
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: python-version: 3.11
+      - run: |
+          pip install uv
+          cd sidecar
+          uv venv --python 3.11
+          uv pip sync requirements.txt
+          uv run ruff .
+          uv run pytest
