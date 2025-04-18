@@ -1,0 +1,32 @@
+# Node (frontend)
+frontend/node_modules/
+frontend/.vite/
+frontend/.next/
+frontend/dist/
+frontend/.output/
+
+# Rust (src-tauri)
+src-tauri/target/
+src-tauri/.cargo/
+src-tauri/Cargo.lock
+
+# Python (sidecar)
+sidecar/.venv/
+sidecar/__pycache__/
+sidecar/.mypy_cache/
+sidecar/.pytest_cache/
+sidecar/*.pyc
+
+# VS Code project files (optional)
+.vscode/
+*.code-workspace
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs and build junk
+*.log
+*.bak
+*.swp
+.env
