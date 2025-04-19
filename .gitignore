@@ -1,5 +1,6 @@
 # Node (frontend)
 frontend/node_modules/
+frontend/src/api-client
 frontend/.vite/
 frontend/.next/
 frontend/dist/
