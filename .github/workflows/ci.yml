@@ -4,25 +4,44 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+
 jobs:
   frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
-        with: node-version: 18
-      - run: |
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: |
           cd frontend
           npm ci
+      - name: Install OpenAPI Generator
+        run: |
+          cd frontend
+          npm install --save-dev @openapitools/openapi-generator-cli
+      - name: Generate OpenAPI & Client
+        run: |
+          chmod +x ./scripts/generate-openapi.sh
+          ./scripts/generate-openapi.sh
+      - name: Lint & Test
+        run: |
+          cd frontend
+          npm run pretty
           npm run lint
           npm test
   rust:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-rust@v1
-        with: rust-version: stable
-      - run: |
+      - name: Setup Rust
+        uses: actions/setup-rust@v1
+        with:
+          rust-version: stable
+      - name: Format, Lint & Build
+        run: |
           cd src-tauri
           cargo fmt -- --check
           cargo clippy -- -D warnings
@@ -31,12 +50,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
-        with: python-version: 3.11
-      - run: |
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+      - name: Install & Test Sidecar
+        run: |
           pip install uv
           cd sidecar
-          uv venv --python 3.11
+          uv venv --python 3.12
           uv pip sync requirements.txt
           uv run ruff .
           uv run pytest
