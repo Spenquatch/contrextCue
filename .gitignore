@@ -11,6 +11,8 @@ src-tauri/.cargo/
 src-tauri/Cargo.lock
 
 # Python (sidecar)
+sidecar/build
+sidecar/src/contrextcue_sidecar.egg-info
 sidecar/.venv/
 sidecar/__pycache__/
 sidecar/.mypy_cache/

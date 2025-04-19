@@ -1,14 +1,21 @@
 [project]
-name = "contrextcue-sidecar"
+name = "contrextcue_sidecar"
 version = "0.1.0"
-description = "Add your description here"
+description = "ContrextCue is a lightweight, cross-platform desktop application for on-device text rewriting and speech-to-text transcription."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-  "fastapi", "uvicorn", "whisper.cpp", "llama.cpp", "pyperclip", "pyautogui"
+  "fastapi",
+  "uvicorn",
+  "pyperclip>=1.8",
+  "pynput>=1.8.1"
 ]
 
-[tool.uv.scripts]
-start = "uvicorn main:app --reload"
-lint = "ruff ."
-test = "pytest"
+[project.optional-dependencies]
+dev = [
+  "ruff",
+  "pytest"
+]
+
+[project.scripts]
+start = "contrextcue_sidecar.main:start"
