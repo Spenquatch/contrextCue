@@ -39,9 +39,10 @@ npm run dev      # start the Vite + Tauri dev server
 ### Rust Backend Setup
 
 ```bash
-cd ContrextCue/src-tauri
+cd contrextCue/src-tauri
 rustup override set stable
-cargo build                   # compile native shell\cargo tauri dev
+cargo build                        # compile native shell
+cargo tauri dev                    # run in dev mode
 ```
 
 
@@ -52,7 +53,7 @@ cargo build                   # compile native shell\cargo tauri dev
 ### Using uv (preferred)
 
 ```bash
-cd ContrextCue/sidecar
+cd contrextCue/sidecar
 uv venv --python 3.12         # create & activate .venv
 
 #Activate virtual Environment
@@ -64,18 +65,9 @@ source .venv/bin/activate
 .venv\Scripts\Activate.ps1
 
 # install dependencies and run FastAPI
-uv pip install .  # Install all project dependencies 
+uv pip install .                    # install runtime deps
+uv install --group dev              # install dev tools (ruff, pytest)
 uv run start  # start FastAPI with autoreload
-```
-
-### Without uv (venv + pip)
-
-```bash
-cd ContrextCue/sidecar
-python -m venv .venv         # create virtual environment
-source .venv/bin/activate     # activate environment
-pip install -r requirements.txt  # install dependencies
-uv run start        # run FastAPI with autoreload
 ```
 
 
@@ -86,16 +78,20 @@ uv run start        # run FastAPI with autoreload
 Open three terminals:
 
 1. **Sidecar**
+
 ```bash
-cd ContrextCue/sidecar
-uv run uvicorn main:app --reload
+cd contrextCue/sidecar
+uv run start
 ```
 
-1. **Sidecar**
+2. **Frontend + Tauri**
+
 ```bash
 cd ContrextCue/frontend
 npm run dev
 ```
+
+3. **Rust Shell**
 
 ```bash
 cd ContrextCue/src-tauri
@@ -107,14 +103,28 @@ cargo tauri dev
 
 ## 8. Additional Tips
 
-- Confirm endpoints at `http://localhost:8000/docs`
-- Use the **Playground** in settings UI to test prompts live
-- Check console logs in each terminal for errors
+- Swagger UI: [http://localhost:8000/api/v1/docs](http://localhost:8000/api/v1/docs)
+- OpenAPI JSON: [http://localhost:8000/api/v1/openapi.json](http://localhost:8000/api/v1/openapi.json)
+- ReDoc: [http://localhost:8000/api/v1/redoc](http://localhost:8000/api/v1/redoc)
+- Use `scripts/generate-openapi.sh` to refresh your TS client locally
+- Keep `uv.lock`, `package-lock.json`, and `Cargo.lock` committed
 
 
 ---
 
-####  📂 Folder Layout
+####  📂 Folder Layout - High Level
+
+```text
+ContrextCue/
+├── frontend/        # Tauri + React
+├── src-tauri/       # Rust shell
+├── sidecar/         # Python FastAPI service (src/…)
+├── scripts/         # helper scripts (e.g. generate-openapi.sh)
+└── .github/         # CI workflows
+```
+
+
+####  📂 Folder Layout - Detail
 
 ```js
 contrextCue/

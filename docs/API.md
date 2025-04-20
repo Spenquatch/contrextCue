@@ -1,17 +1,26 @@
 All processing routes are exposed via a local FastAPI server that the Tauri frontend consumes.
 
-### POST /rewrite
-Processes text input with the specified prompt.
+You can explore and test them interactively at:
+- Swagger UI:  `/api/v1/docs`  
+- OpenAPI spec: `/api/v1/openapi.json`  
+- ReDoc (optional): `/api/v1/redoc`  
 
-**Request** (application/json):
+---
+
+### POST /api/v1/rewrite
+
+**Summary:** Rewrite a block of text using a specific prompt.
+
+**Request** (`application/json`):
+
 ```json
 {
-  "trigger": "rewrite",           // The user-defined trigger name
+  "trigger": "rewrite",
   "prompt": "Rewrite for clarity and tone:",
   "input": "I want to say this better but don’t know how.",
-  "mode": "replace",             // "append" or "replace"
-  "clipboard": true,               // Copy result to clipboard
-  "autoPaste": true                // Paste result at cursor if valid
+  "mode": "replace",
+  "clipboard": true,
+  "autoPaste": true
 }
 ```
 
@@ -22,13 +31,15 @@ Processes text input with the specified prompt.
 }
 ```
 
-### POST /transcribe
+### POST /api/v1/transcribe
 Records a short audio clip and returns its transcription (and optional rewrite).
 
-**Request** (application/json):
+**Summary:** Transcribe speech in real time, then optionally rewrite it.
+
+**Request** (`application/json`):
 ```json
 {
-  "trigger": "talk",             // Typically "talk"
+  "trigger": "talk",
   "prompt": "Rewrite for clarity and tone:",
   "mode": "append",
   "clipboard": true,
@@ -36,11 +47,11 @@ Records a short audio clip and returns its transcription (and optional rewrite).
 }
 ```
 
-**Server Flow**:
-1. Capture audio (in-memory or temp file).
-2. Run `whisper.cpp` on the recording.
-3. If a prompt is provided, send transcription to `/rewrite` logic.
-4. Return transcription or rewritten text.
+**Server Flow:**
+1. Real‑time streaming transcription via `whisper.cpp`
+2. Buffer transcript until user types `/end` + hotkey
+3. If a `prompt` is provided, send transcript through `/rewrite`
+4. Return both raw `transcription` and final `result`
 
 **Response** (200 OK):
 ```json
@@ -50,8 +61,10 @@ Records a short audio clip and returns its transcription (and optional rewrite).
 }
 ```
 
-### GET /status
+### GET /api/v1/status
 Returns health and configuration status.
+
+**Summary:** Health and configuration status.
 
 **Response** (200 OK):
 ```json
@@ -69,8 +82,8 @@ Returns health and configuration status.
 }
 ```
 
-### GET /settings
-Fetches current settings for UI display.
+### GET /api/v1/settings
+**Summary:** Fetch current user settings.
 
 **Response** (200 OK):
 ```json
@@ -95,10 +108,10 @@ Fetches current settings for UI display.
 }
 ```
 
-### POST /settings
-Update user settings (triggers, behaviors, advanced options).
+### POST /api/v1/settings
+**Summary:** Update user settings (triggers, behaviors, advanced).
 
-**Request** (application/json):
+**Request** (`application/json`):
 ```json
 {
   "prompts": { ... },

@@ -24,13 +24,15 @@ For full text, see [https://opensource.org/licenses/MIT](https://opensource.org/
 ## 2. Project Initialization
 
 ### Frontend (Tauri + React)
+
 1. Create a `package.json` and install production and dev dependencies:
 
 ```bash
 cd contrextCue/frontend
 npm init -y
-npm install react react-dom @tauri-apps/api tailwindcss zustand
+npm install react react-dom @tauri-apps/api tailwindcss zustand axios
 npm install --save-dev typescript @types/react @types/node vite eslint prettier jest
+npm install --save-dev typescript @types/react @types/node vite eslint prettier jest @openapitools/openapi-generator-cli
 ```
 
 2. Define npm scripts in `package.json`:
@@ -47,26 +49,57 @@ npm install --save-dev typescript @types/react @types/node vite eslint prettier 
 }
 ```
 
+3. Create a `scripts/` folder at the repo root with `generate-openapi.sh` to dump and regenerate your TS client.
+
+```bash
+#!/usr/bin/env bash
+set -e
+
+# Ensure sidecar spec is up to date
+pushd sidecar
+uv run start --reload &   # or however you spin it up
+PID=$!
+sleep 2                    # wait for the server
+popd
+
+# Dump the spec
+curl http://localhost:8000/api/v1/openapi.json -o docs/openapi.json
+  
+# Kill the sidecar
+kill $PID
+
+# Generate the TS client
+pushd frontend
+npx openapi-generator-cli generate \
+  -i ../docs/openapi.json \
+  -g typescript-axios \
+  -o src/api-client \
+  --additional-properties=supportsES6=true,withSeparateModelsAndApi=true,apiPackage=api,modelPackage=models
+popd
+```
+
 ### Sidecar (Python + uv)
+
 1. Initialize the project and virtual environment with uv:
 
 ```bash
-cd contrextCue/sidecar
+cd ContrextCue/sidecar
 uv init .
+uv venv --python 3.12
 ```
 
 2. Declare dependencies in `pyproject.toml`:
 
 ```toml
 [project]
-name = "contrextcue-sidecar"
+name = "contrextcue_sidecar"
 version = "0.1.0"
 description = "ContrextCue is a lightweight, cross-platform desktop application for on-device text rewriting and speech-to-text transcription."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-  "fastapi",
-  "uvicorn",
+  "fastapi>=0.115.12",
+  "uvicorn>=0.34.1",
   "pyperclip>=1.8",
   "pynput>=1.8.1"
 ]
@@ -76,6 +109,16 @@ dev = [
   "ruff",
   "pytest"
 ]
+
+[project.scripts]
+start = "contrextcue_sidecar.main:start"
+```
+
+3. Install:
+
+```bash
+uv pip install .
+uv run start
 ```
 
 
@@ -84,51 +127,6 @@ dev = [
 ## 3. Continuous Integration (GitHub Actions)
 
 All CI pipelines live under `.github/workflows/ci.yml`. This workflow runs linters, tests, and builds for each major component.
-
-```yaml
-name: CI
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-jobs:
-  frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
-        with: node-version: 18
-      - run: |
-          cd frontend
-          npm ci
-          npm run lint
-          npm test
-  rust:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-rust@v1
-        with: rust-version: stable
-      - run: |
-          cd src-tauri
-          cargo fmt -- --check
-          cargo clippy -- -D warnings
-          cargo build --release
-  python:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
-        with: python-version: 3.11
-      - run: |
-          pip install uv
-          cd sidecar
-          uv venv --python 3.11
-          uv pip sync requirements.txt
-          uv run ruff .
-          uv run pytest
-```
 
 ### Caching
 
@@ -143,11 +141,13 @@ jobs:
 Release builds produce native installers for Windows, macOS, and Linux.
 
 1. **Tauri Build**
+
 ```bash
 cd frontend && npm ci --production
 cd src-tauri
 cargo tauri build
 ```
+
 - Outputs located in `src-tauri/target/release/bundle`
 	- Windows: `.exe` NSIS or MSI
 	- macOS: `.app` and `.dmg`
@@ -157,12 +157,13 @@ cargo tauri build
         - Include `sidecar/.venv` directory in the bundle resources.
     - **Option B: PyInstaller**
     - Copy `dist/contrextcue_sidecar` into Tauri `bundle.resources`.
+
 ```bash
 cd sidecar
 uv run pyinstaller --onefile --name contrextcue_sidecar main.py
 ```
+
 3. **Automated Releases**
-    
     - Create a GitHub Action on `push: tags: ['v*']` to:
         - Run CI pipeline
         - Build production bundles
@@ -175,13 +176,46 @@ uv run pyinstaller --onefile --name contrextcue_sidecar main.py
 - Commit lockfiles: `uv.lock`, `package-lock.json`, `Cargo.lock`
 - **.gitignore:**
 ```bash
-/frontend/node_modules
-/src-tauri/target
-/sidecar/.venv
-uv.lock
-__pycache__/
-*.py[cod]
+# Node (frontend)
+
+frontend/node_modules/
+frontend/src/api-client
+frontend/.vite/
+frontend/.next/
+frontend/dist/
+frontend/.output/
+
+
+# Rust (src-tauri)
+src-tauri/target/
+src-tauri/.cargo/
+src-tauri/Cargo.lock
+  
+# Python (sidecar)
+sidecar/build
+sidecar/src/contrextcue_sidecar.egg-info
+sidecar/.venv/
+sidecar/__pycache__/
+sidecar/.mypy_cache/
+sidecar/.pytest_cache/
+sidecar/*.pyc
+
+# VS Code project files (optional)
+
+.vscode/
+*.code-workspace
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs and build junk
+*.log
+*.bak
+*.swp
+.env
 ```
+
 - No secrets in repo; use GitHub Secrets
 - Documentation files live under `docs/`
 
