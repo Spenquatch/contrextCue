@@ -1,0 +1,13 @@
+[package]
+name = "contrextcue-tauri"
+version = "0.1.0"
+authors = ["Your Name <your@email.com>"]
+edition = "2021"
+description = "Tauri shell for ContrextCue"
+license = "MIT"
+repository = "https://github.com/Spenguatch/contextCue"
+
+[dependencies]
+tauri = { version = "1.6" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
