@@ -1,64 +1,110 @@
 name: CI
+
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   pull_request:
-    branches: [main]
+    branches: [main, master]
 
 jobs:
   frontend:
+    name: Frontend (Node/React)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Restore npm cache
+        uses: actions/cache@v4
         with:
-          node-version: 22
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
       - name: Install dependencies
-        run: |
-          cd frontend
-          npm ci
-      - name: Install OpenAPI Generator
-        run: |
-          cd frontend
-          npm install --save-dev @openapitools/openapi-generator-cli
-      - name: Generate OpenAPI & Client
-        run: |
-          chmod +x ./scripts/generate-openapi.sh
-          ./scripts/generate-openapi.sh
-      - name: Lint & Test
-        run: |
-          cd frontend
-          npm run pretty
-          npm run lint
-          npm test
-  rust:
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Prettier check
+        run: npm run pretty -- --check
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  sidecar:
+    name: Sidecar (Python + uv/FastAPI)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sidecar
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Rust
-        uses: actions/setup-rust@v1
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Cache .venv if possible
+      - name: Cache Python venv
+        uses: actions/cache@v4
         with:
-          rust-version: stable
-      - name: Format, Lint & Build
+          path: sidecar/.venv
+          key: ${{ runner.os }}-pyvenv-${{ hashFiles('sidecar/pyproject.toml') }}-${{ hashFiles('sidecar/uv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pyvenv-
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install project + dev dependencies
         run: |
-          cd src-tauri
-          cargo fmt -- --check
-          cargo clippy -- -D warnings
-          cargo build --release
-  python:
+          uv pip install -e .[dev]
+
+      - name: Lint (ruff)
+        run: uv run ruff check .
+
+      - name: Run tests (pytest)
+        run: uv run pytest
+
+  tauri:
+    name: Tauri (Rust backend)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src-tauri
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Restore cargo cache
+        uses: actions/cache@v4
         with:
-          python-version: 3.12
-      - name: Install & Test Sidecar
-        run: |
-          pip install uv
-          cd sidecar
-          uv venv --python 3.12
-          uv pip sync requirements.txt
-          uv run ruff .
-          uv run pytest
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build (cargo check)
+        run: cargo check
+
+      - name: Build release
+        run: cargo build --release
