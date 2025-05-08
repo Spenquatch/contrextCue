@@ -223,19 +223,27 @@ Thumbs.db
 
 ## 6. Next Steps
 
-- **Formalize the Sidecar API**
-    - Split `main.py` into modular FastAPI routers (`routers/…`)
-    - Define Pydantic request/response schemas in `schemas/…`
-- **Publish & Document the API**
-    - Enable OpenAPI generation (e.g. expose at `/api/v1/openapi.json`)
-    - Wire up Swagger UI at `/api/v1/docs` and optionally ReDoc at `/api/v1/redoc`
-- **Generate & Integrate Client SDKs**
-    - Use the OpenAPI spec to auto‑generate a TypeScript client for your frontend
-    - (Optionally) generate a Python client for other integrations
-- **Strengthen CI/CD**
-    - Add code‑coverage reporting (frontend + Python) and push reports to Codecov or Coveralls
-    - Configure dependency‑scan bots (Dependabot for JS/Python, CodeQL for security)
-    - Wire up semantic‑release (or similar) to bump versions, update `CHANGELOG.md`, and tag releases
-- **Automate Releases**
-    - Extend your GitHub Actions to build & bundle installers on tag pushes (`v*`)
-    - Publish artifacts automatically to GitHub Releases
+- **Bootstrap & verify the frontend**
+    - Install dependencies and run Vite to confirm the React app renders at `localhost:3000`
+    - Add a simple component that calls the generated Status API and displays its response
+- **Initialize Tauri integration**
+    - Scaffold the Tauri config so your Vite dev server becomes the desktop window
+    - Expose a placeholder Rust command and invoke it from React to validate the command bridge
+- **Wire up core features in React**
+    - Build the **TriggerManager** component that uses the Rewrite API to transform user input
+    - Integrate the **Transcribe** flow into a UI control that records and displays transcripts
+    - Hook the **Settings** panel to the `/settings` endpoints for live prompt and behavior changes
+- **Global shortcut support**
+    - Configure `tauri-plugin-global-shortcut` in the Rust shell to listen for your hotkey combo
+    - Map the shortcut to invoke the appropriate React action (rewrite or transcribe)
+- **Enhance CI/CD with coverage and security**
+    - Add frontend and Python coverage reporting to your GitHub Actions and publish to Codecov
+    - Enable Dependabot updates and CodeQL security scans on the repo
+    - Wire up semantic‑release to automate version bumps and changelog generation
+- **Release automation**
+    - Extend CI to trigger on `v*` tags, build Tauri bundles and sidecar executables
+    - Publish installers and sidecar artifacts as GitHub Release assets
+- **Polish & iteration**
+    - Build the “Playground” test page for ad‑hoc prompt experimentation
+    - Refine settings persistence (secure local storage) and UI validation
+    - Begin swapping stub runners for production Whisper/llama logic and real‑time streaming
