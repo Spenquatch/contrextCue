@@ -18,6 +18,8 @@ sidecar/.venv/
 sidecar/__pycache__/
 sidecar/.mypy_cache/
 sidecar/.pytest_cache/
+sidecar/.python-version
+sidecar/.ruff_cache
 sidecar/*.pyc
 sidecar/.python-version
 sidecar/.ruff_cache/
