@@ -19,6 +19,8 @@ sidecar/__pycache__/
 sidecar/.mypy_cache/
 sidecar/.pytest_cache/
 sidecar/*.pyc
+sidecar/.python-version
+sidecar/.ruff_cache/
 
 # VS Code project files (optional)
 .vscode/
