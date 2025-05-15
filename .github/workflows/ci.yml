@@ -111,7 +111,11 @@ jobs:
            libsoup2.4-dev
 
       - name: Build (cargo check)
-        run: cargo check
+        run: |
+          export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
+          cargo check
 
       - name: Build release
-        run: cargo build --release
+        run: |
+          export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
+          cargo build --release
