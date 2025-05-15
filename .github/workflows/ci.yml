@@ -72,7 +72,7 @@ jobs:
 
       - name: Install project + dev dependencies
         run: |
-          uv pip install -e .[dev]
+          uv pip install --system -e .[dev]
 
       - name: Lint (ruff)
         run: uv run ruff check .
@@ -102,6 +102,9 @@ jobs:
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Install libglib2.0-dev (system dependency)
+        run: sudo apt-get update && sudo apt-get install -y libglib2.0-dev
 
       - name: Build (cargo check)
         run: cargo check
