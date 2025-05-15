@@ -114,6 +114,10 @@ jobs:
             libwebkit2gtk-4.0-dev \
             software-properties-common
 
+      - name: Create main.rs if not exists
+        run: |
+          mkdir -p src
+          echo 'fn main() { println!("Hello from Tauri!"); }' > src/main.rs
 
       - name: Build (cargo check)
         run: |
