@@ -9,7 +9,7 @@ on:
 jobs:
   frontend:
     name: Frontend (Node/React)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04t
     defaults:
       run:
         working-directory: frontend
@@ -45,7 +45,7 @@ jobs:
 
   sidecar:
     name: Sidecar (Python + uv/FastAPI)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: sidecar
@@ -82,7 +82,7 @@ jobs:
 
   tauri:
     name: Tauri (Rust backend)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: src-tauri
