@@ -103,8 +103,12 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install libglib2.0-dev (system dependency)
-        run: sudo apt-get update && sudo apt-get install -y libglib2.0-dev
+      - name: Install system dependencies
+        run: |
+           sudo apt-get update && sudo apt-get install -y \
+           libglib2.0-dev \
+           libgtk-3-dev \
+           libsoup2.4-dev
 
       - name: Build (cargo check)
         run: cargo check
